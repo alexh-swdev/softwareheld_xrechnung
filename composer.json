@@ -15,7 +15,7 @@
     
     "require": {
         "php": ">=7.4.0",
-        "openmage/magento-lts": ">=20.10 || main-dev || next-dev",
+        "magento-hackathon/magento-composer-installer": "*"
         "horstoeko/zugferd": "^1.0"
     },
     "minimum-stability": "dev"
