@@ -18,12 +18,10 @@ If you choose to use it, adjust your `composer.json`
 	}
 ],
 (...)
-"require" : {
-	"alexh-swdev/softwareheld_xrechnung": "dev-master",
-	(...)
-}
-(...)
 ```
+Then run
+`composer require alexh-swdev/softwareheld_xrechnung --update-no-dev --minimal-changes --optimize-autoloader -vvv`
+or similar
 
 ## Credits
 
