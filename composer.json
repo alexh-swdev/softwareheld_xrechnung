@@ -15,7 +15,7 @@
     
     "require": {
         "php": ">=7.4.0",
-        "magento-hackathon/magento-composer-installer": "*"
+        "magento-hackathon/magento-composer-installer": "*",
         "horstoeko/zugferd": "^1.0"
     },
     "minimum-stability": "dev"
