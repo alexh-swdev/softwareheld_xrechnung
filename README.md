@@ -19,9 +19,9 @@ If you choose to use it, adjust your `composer.json`
 ],
 (...)
 ```
-Then run
-`composer require alexh-swdev/softwareheld_xrechnung --update-no-dev --minimal-changes --optimize-autoloader -vvv`
-or similar
+Then run `composer require alexh-swdev/softwareheld_xrechnung --update-no-dev --minimal-changes --optimize-autoloader -vvv` or similar.
+
+To update, run `composer update update alexh-swdev/softwareheld_xrechnung --update-no-dev --minimal-changes --optimize-autoloader -vvv` or similar.
 
 ## Credits
 
