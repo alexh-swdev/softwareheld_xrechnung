@@ -18,5 +18,5 @@
         "openmage/magento-lts": ">=20.10 || main-dev || next-dev",
         "horstoeko/zugferd": "^1.0"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "dev"
 }
