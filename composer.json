@@ -20,7 +20,8 @@
 	"minimum-stability": "dev",
 	"extra": {
 		"map":[
-			["src/app/*", "app/"]
+			["src/app/code/community/SoftwareHeld/*", "app/code/community/SoftwareHeld"],
+			["src/app/etc/modules/SoftwareHeld_Xrechnung.xml", "app/etc/modules/SoftwareHeld_Xrechnung.xml"]
 		]
 	}
 }
