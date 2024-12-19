@@ -281,7 +281,7 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
             return $surchargeData;
         }
 
-        $surcharge = $order->getFoomanSurchargeAmount();
+        $surcharge = floatval($order->getFoomanSurchargeAmount() ?? 0);
         if (empty($surcharge)) {
             return $surchargeData;
         }
