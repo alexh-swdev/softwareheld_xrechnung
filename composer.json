@@ -20,7 +20,7 @@
 	"minimum-stability": "dev",
 	"extra": {
 		"map":[
-			["src/app/*", "app/"],
+			["src/app/*", "app/"]
 		]
 	}
 }
