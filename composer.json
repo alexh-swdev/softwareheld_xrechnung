@@ -1,22 +1,26 @@
 {
-    "type": "magento-module",
-    "name": "alexh-swdev/softwareheld_xrechnung",
-    "description": "XRechnung generator",
-    "keywords": ["openmage", "openmage-module", "xrechnung"],
-    "homepage": "https://github.com/alexh-swdev/softwareheld_xrechnung",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Alexander Held",
-            "homepage": "https://www.software-held.com",
-            "email": "alex.held@software-held.com"
-        }
-    ],
-    
-    "require": {
-        "php": ">=7.4.0",
-        "openmage/magento-lts": ">=20.10 || main-dev || next-dev",
-        "horstoeko/zugferd": "^1.0"
-    },
-    "minimum-stability": "dev",
+	"type": "magento-module",
+	"name": "alexh-swdev/softwareheld_xrechnung",
+	"description": "XRechnung generator",
+	"keywords": ["openmage", "openmage-module", "xrechnung"],
+	"homepage": "https://github.com/alexh-swdev/softwareheld_xrechnung",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Alexander Held",
+			"homepage": "https://www.software-held.com",
+			"email": "alex.held@software-held.com"
+		}
+	],
+	"require": {
+		"php": ">=7.4.0",
+		"magento-hackathon/magento-composer-installer": "*",
+		"horstoeko/zugferd": "^1.0"
+	},
+	"minimum-stability": "dev",
+	"extra": {
+		"map":[
+			["src/app/*", "app/"]
+		]
+	}
 }
