@@ -19,6 +19,7 @@
 	},
 	"minimum-stability": "dev",
 	"extra": {
+		"magento-deploystrategy": "copy",
 		"map":[
 			["src/app/*", "app/"]
 		]
