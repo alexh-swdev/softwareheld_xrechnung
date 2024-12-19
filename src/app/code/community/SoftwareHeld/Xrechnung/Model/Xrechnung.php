@@ -297,6 +297,32 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         return $order;
     }
 
+    private function generateInvoices(Mage_Sales_Model_Order $order): ?Mage_Sales_Model_Order_Invoice
+    {
+        $orderItemsMap = [];
+        foreach ($order->getAllItems() as $orderItem) {
+            $orderItemsMap[$orderItem->getId()] = $orderItem->getQtyOrdered();
+        }
+
+        /** @var Mage_Sales_Model_Service_Order $orderServiceModel */
+        $orderServiceModel = Mage::getModel('sales/service_order', $order);
+        return $orderServiceModel->prepareInvoice($orderItemsMap);
+    }
+
+    private function processInvoice(Mage_Sales_Model_Order_Invoice $invoice): Mage_Sales_Model_Order_Invoice
+    {
+        $invoice->register();
+        $invoice->getOrder()->setCustomerNoteNotify(false);
+        $invoice->getOrder()->setIsInProcess(true);
+
+        $tx = Mage::getModel('core/resource_transaction')
+            ->addObject($invoice)
+            ->addObject($invoice->getOrder());
+        $tx->save();
+
+        return $invoice;
+    }
+
     private function getSample(): SoftwareHeld_Xrechnung_Model_Result
     {
         /** @var SoftwareHeld_Xrechnung_Model_Result $res */
