@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <SoftwareHeld_Xrechnung>
+            <version>1.0.0</version>
+        </SoftwareHeld_Xrechnung>
+    </modules>
+
+    <global>
+        <helpers>
+            <xrechnung>
+                <class>SoftwareHeld_Xrechnung_Helper</class>
+            </xrechnung>
+        </helpers>
+
+        <models>
+            <xrechnung>
+                <class>SoftwareHeld_Xrechnung_Model</class>
+            </xrechnung>
+        </models>
+
+        <events>
+            <core_block_abstract_prepare_layout_before>
+                <observers>
+                    <xrechnung_block_abstract_prepare_layout_before>
+                        <class>xrechnung/observer</class>
+                        <method>addMassActionForOrdersGrid</method>
+                    </xrechnung_block_abstract_prepare_layout_before>
+                </observers>
+            </core_block_abstract_prepare_layout_before>
+        </events>
+    </global>
+
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <SoftwareHeld_Xrechnung before="Mage_Adminhtml">SoftwareHeld_Xrechnung</SoftwareHeld_Xrechnung>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+</config>

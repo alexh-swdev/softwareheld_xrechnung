@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <SoftwareHeld_Xrechnung>
+            <active>true</active>
+            <codePool>community</codePool>
+        </SoftwareHeld_Xrechnung>
+    </modules>
+</config>
