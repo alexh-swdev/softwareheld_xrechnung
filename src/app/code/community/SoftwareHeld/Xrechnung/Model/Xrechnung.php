@@ -291,6 +291,12 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         return $surchargeData;
     }
 
+    private function getOrder(int $orderId): ?Mage_Sales_Model_Order
+    {
+        $order = Mage::getModel('sales/order')->load($orderId);
+        return $order;
+    }
+
     private function getSample(): SoftwareHeld_Xrechnung_Model_Result
     {
         /** @var SoftwareHeld_Xrechnung_Model_Result $res */
