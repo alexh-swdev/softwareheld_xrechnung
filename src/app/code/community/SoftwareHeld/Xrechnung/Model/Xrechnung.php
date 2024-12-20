@@ -7,10 +7,16 @@ use horstoeko\zugferd\codelists\ZugferdPaymentMeans;
 class SoftwareHeld_Xrechnung_Model_Xrechnung
 {
     private const string QTY_UNIT_CODE_PIECE = "H87";
-    private const string DEFAULT_SAMPLE_LEITWEG_ID = "04011000-1234512345-06";
 
-    // Validator: https://erechnungsvalidator.service-bw.de
+    // See: https://leitweg-id.de
+    private const string DEFAULT_SAMPLE_LEITWEG_ID = "N/A";// testing: "04011000-1234512345-06";
 
+    /**
+     * Collect the invoices for the given order. Create one, if none exists.
+     *
+     * @param int $orderId
+     * @return SoftwareHeld_Xrechnung_Model_Result
+     */
     public function getInvoices(int $orderId): SoftwareHeld_Xrechnung_Model_Result
     {
         /** @var SoftwareHeld_Xrechnung_Model_Result $res */
@@ -68,6 +74,15 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         return $res;
     }
 
+    /**
+     * Create the XRechnung xml for the given invoice.
+     * At time of implementation, the result valdiates green against this validator:
+     * https://erechnungsvalidator.service-bw.de
+     *
+     * @param Mage_Sales_Model_Order_Invoice $invoice
+     * @return SoftwareHeld_Xrechnung_Model_Result
+     * @throws DateMalformedStringException
+     */
     public function createXml(Mage_Sales_Model_Order_Invoice $invoice): SoftwareHeld_Xrechnung_Model_Result
     {
 //        return $this->getSample();
@@ -183,8 +198,13 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
             $buyerEmail = $order->getCustomerEmail();
         }
 
+        $leitweg = $billingAddress->getLeitwegId();
+        if (empty($leitweg)) {
+            $leitweg = self::DEFAULT_SAMPLE_LEITWEG_ID;
+        }
+
         $document = $document->setDocumentBuyer($order->getCustomerName(), $order->getCustomerId())
-            ->setDocumentBuyerReference(self::DEFAULT_SAMPLE_LEITWEG_ID) // FIXME: use the one from the customer... requires further enhancement
+            ->setDocumentBuyerReference($leitweg)
             ->setDocumentBuyerAddress($billingAddress->getStreetFull(), "", "", $billingAddress->getPostcode(),
                 $billingAddress->getCity(), $billingAddress->getCountryId())
             ->setDocumentBuyerCommunication("EM", $buyerEmail);
@@ -323,6 +343,10 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         return $invoice;
     }
 
+    /**
+     * Creates a XRechnung xml with the sample from the lib vendor
+     * @return SoftwareHeld_Xrechnung_Model_Result
+     */
     private function getSample(): SoftwareHeld_Xrechnung_Model_Result
     {
         /** @var SoftwareHeld_Xrechnung_Model_Result $res */

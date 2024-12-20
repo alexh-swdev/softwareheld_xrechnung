@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Transfer object
+ */
 class SoftwareHeld_Xrechnung_Model_Result
 {
     private bool $sucess = false;

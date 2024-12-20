@@ -20,8 +20,10 @@
 	"minimum-stability": "dev",
 	"extra": {
 		"map":[
-			["src/app/code/community/SoftwareHeld/*", "app/code/community/SoftwareHeld"],
-			["src/app/etc/modules/SoftwareHeld_Xrechnung.xml", "app/etc/modules/SoftwareHeld_Xrechnung.xml"]
+			["src/app/code/community/SoftwareHeld/Xrechnung*", "app/code/community/SoftwareHeld/Xrechnung"],
+			["src/app/etc/modules/SoftwareHeld_Xrechnung.xml", "app/etc/modules/SoftwareHeld_Xrechnung.xml"],
+			["src/design/frontend/base/default/layout/softwareheld_xrechnung.xml", "design/frontend/base/default/layout/softwareheld_xrechnung.xml"],
+			["src/design/frontend/base/default/template/softwareheld_xrechnung/*", "design/frontend/base/default/template/softwareheld_xrechnung"]
 		]
 	}
 }

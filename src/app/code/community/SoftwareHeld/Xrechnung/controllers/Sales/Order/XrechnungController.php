@@ -2,7 +2,10 @@
 
 class SoftwareHeld_Xrechnung_Sales_Order_XrechnungController extends Mage_Adminhtml_Controller_Action
 {
-    public function createAction()
+    /**
+     * @return SoftwareHeld_Xrechnung_Sales_Order_XrechnungController
+     */
+    public function createAction(): static
     {
         /** @var SoftwareHeld_Xrechnung_Model_Xrechnung $xrechnung */
         $xrechnung = Mage::getModel("xrechnung/xrechnung");
@@ -20,11 +23,10 @@ class SoftwareHeld_Xrechnung_Sales_Order_XrechnungController extends Mage_Adminh
 
         $zipHasContent = false;
         $orderIds = $this->getRequest()->getPost('order_ids', []);
-        if(empty($orderIds)) {
+        if (empty($orderIds)) {
             // via order detail view?
             $orderId = $this->getRequest()->getParam('order_id', 0);
-            if(!empty($orderId))
-            {
+            if (!empty($orderId)) {
                 $orderIds[] = $orderId;
             }
         }
@@ -32,7 +34,7 @@ class SoftwareHeld_Xrechnung_Sales_Order_XrechnungController extends Mage_Adminh
         foreach ($orderIds as $orderId) {
             $invResult = $xrechnung->getInvoices($orderId);
 
-            if(!$invResult->isSucess()) {
+            if (!$invResult->isSucess()) {
                 foreach ($invResult->getMessages() as $invError) {
                     $this->_getSession()->addError($invError);
                 }
@@ -40,10 +42,10 @@ class SoftwareHeld_Xrechnung_Sales_Order_XrechnungController extends Mage_Adminh
                 return $this->_redirect('*/sales_order');
             }
 
-            foreach($invResult->getInvoices() as $invoice) {
+            foreach ($invResult->getInvoices() as $invoice) {
                 $xmlResult = $xrechnung->createXml($invoice);
 
-                if(!$xmlResult->isSucess()) {
+                if (!$xmlResult->isSucess()) {
                     foreach ($xmlResult->getMessage() as $xmlError) {
                         $this->_getSession()->addError($xmlError);
                     }
@@ -52,15 +54,14 @@ class SoftwareHeld_Xrechnung_Sales_Order_XrechnungController extends Mage_Adminh
                 }
 
                 $xmlInvoice = $xmlResult->getXmlInvoice();
-                if(!empty($xmlInvoice))
-                {
+                if (!empty($xmlInvoice)) {
                     $zip->addFromString(sprintf("%s_xrechnung3.xml", $invoice->getIncrementId()), $xmlInvoice);
                     $zipHasContent = true;
                 }
             }
         }
 
-        if($zipHasContent) {
+        if ($zipHasContent) {
             $zip->close();
             return $this->_prepareDownloadResponse(sprintf("%s_xrechnung3_0.zip", (new DateTime())->format("Y-m-d")),
                 ["type" => "filename", "value" => $zipFile], "application/octet-stream");
