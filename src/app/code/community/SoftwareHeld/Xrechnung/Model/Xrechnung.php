@@ -10,6 +10,8 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
 
     // See: https://leitweg-id.de
     private const string DEFAULT_SAMPLE_LEITWEG_ID = "N/A";// testing: "04011000-1234512345-06";
+    private const string DOCUMENT_TYPE_INVOICE = "380";
+    private const string DOCUMENT_TYPE_CREDIT_MEMO = "381";
 
     /**
      * Collect the invoices for the given order. Create one, if none exists.
@@ -74,6 +76,30 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         return $res;
     }
 
+    public function getCreditMemos(int $orderId): SoftwareHeld_Xrechnung_Model_Result
+    {
+        /** @var SoftwareHeld_Xrechnung_Model_Result $res */
+        $res = Mage::getModel("xrechnung/result");
+
+        /** @var $creditMemos Mage_Sales_Model_Order_Creditmemo */
+        $creditMemos = Mage::getResourceModel('sales/order_creditmemo_collection')
+            ->addAttributeToSelect('*')
+            ->setOrderFilter($orderId)
+            ->load();
+
+        if ($creditMemos->getSize() > 0) {
+            foreach ($creditMemos as $creditMemo) {
+                $res->addCreditMemo($creditMemo);
+            }
+        } else {
+            $res->addMessage("No credit memos found.");
+        }
+
+
+        $res->setSucess(empty($res->getMessage()) && !empty($res->getCreditMemos()));
+        return $res;
+    }
+
     /**
      * Create the XRechnung xml for the given invoice.
      * At time of implementation, the result valdiates green against this validator:
@@ -83,7 +109,7 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
      * @return SoftwareHeld_Xrechnung_Model_Result
      * @throws DateMalformedStringException
      */
-    public function createXml(Mage_Sales_Model_Order_Invoice $invoice): SoftwareHeld_Xrechnung_Model_Result
+    public function createXmlForInvoice(Mage_Sales_Model_Order_Invoice $invoice): SoftwareHeld_Xrechnung_Model_Result
     {
 //        return $this->getSample();
         if ($invoice->getStoreId()) {
@@ -97,9 +123,8 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         $res = Mage::getModel("xrechnung/result");
 
         $document = ZugferdDocumentBuilder::createNew(ZugferdProfiles::PROFILE_XRECHNUNG_3);
-        $document = $document->setDocumentInformation($invoice->getIncrementId(), "380",
-            new DateTime($invoice->getCreatedAt()),
-            "EUR")
+        $document = $document->setDocumentInformation($invoice->getIncrementId(), self::DOCUMENT_TYPE_INVOICE,
+            new DateTime($invoice->getCreatedAt()), "EUR")
             ->setDocumentBuyerOrderReferencedDocument($order->getRealOrderId())// "shall" not according to validator: , new DateTime($order->getCreatedAt()))
             ->addDocumentNote('Rechnungsdatum entspricht dem Lieferdatum');
 
@@ -108,6 +133,45 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
 
         $document = $this->addOrderItems($document, $storeId, $order);
         $document = $this->addTaxInfo($document, $storeId, $order);
+
+        $res->setXmlInvoice($document->getContent());
+        $res->setSucess(true);
+
+        return $res;
+    }
+
+    /**
+     * Create the XRechnung xml for the given credit memo.
+     *
+     * @param Mage_Sales_Model_Order_Creditmemo $creditMemo
+     * @return SoftwareHeld_Xrechnung_Model_Result
+     * @throws DateMalformedStringException
+     */
+    public function createXmlForCreditMemo(Mage_Sales_Model_Order_Creditmemo $creditMemo): SoftwareHeld_Xrechnung_Model_Result
+    {
+//        return $this->getSample();
+        if ($creditMemo->getStoreId()) {
+            Mage::app()->getLocale()->emulate($creditMemo->getStoreId());
+        }
+
+        $order = $creditMemo->getOrder();
+        $storeId = $order->getStoreId();
+
+        /** @var SoftwareHeld_Xrechnung_Model_Result $res */
+        $res = Mage::getModel("xrechnung/result");
+
+        $document = ZugferdDocumentBuilder::createNew(ZugferdProfiles::PROFILE_XRECHNUNG_3);
+        $document = $document->setDocumentInformation($creditMemo->getIncrementId(), self::DOCUMENT_TYPE_CREDIT_MEMO,
+            new DateTime($creditMemo->getCreatedAt()),
+            "EUR")
+            ->setDocumentBuyerOrderReferencedDocument($creditMemo->getIncrementId())
+            ->addDocumentNote('Bestelldatum: ' . $order->getCreatedAt());
+
+        $document = $this->addASeller($document, $storeId);
+        $document = $this->addBuyer($document, $storeId, $order);
+
+        $document = $this->addRefundedItems($document, $storeId, $order, $creditMemo);
+        $document = $this->addTaxInfoRefunded($document, $storeId, $order, $creditMemo);
 
         $res->setXmlInvoice($document->getContent());
         $res->setSucess(true);
@@ -271,6 +335,64 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         return $document;
     }
 
+    private function addRefundedItems(ZugferdDocumentBuilder $document,
+        int $storeId,
+        Mage_Sales_Model_Order $order,
+        Mage_Sales_Model_Order_Creditmemo $creditmemo): ZugferdDocumentBuilder
+    {
+        $row = 1;
+        $items = $order->getAllItems();
+        foreach ($items as $item) {
+            $qtyRefunded = $item->getQtyRefunded();
+            if($qtyRefunded == 0){
+                continue;
+            }
+
+            $pi = $item->getParentItem();
+            if ($pi) {
+                continue;
+            }
+
+            $baseAdjustment = $creditmemo->getAdjustmentNegative();
+            $taxPercent = $item->getTaxPercent();
+
+            $amountRefunded = $baseAdjustment > 0 ? $baseAdjustment : $item->getAmountRefunded();
+            $baseRefunded = $baseAdjustment > 0  ? $baseAdjustment / (100 + $taxPercent) * 100 : $item->getBaseAmountRefunded();
+            $details = $baseAdjustment > 0  ? ["Refund", ""] : [$item->getName(), $item->getSku()];
+            $document = $document->addNewPosition(($row++) . "")
+                ->setDocumentPositionProductDetails($details[0], "", $details[1])
+                ->setDocumentPositionNetPrice($baseRefunded)
+                ->setDocumentPositionQuantity($qtyRefunded, self::QTY_UNIT_CODE_PIECE)
+                ->addDocumentPositionTax('S', 'VAT', $taxPercent)
+                ->setDocumentPositionLineSummation($baseRefunded);
+        }
+
+
+        $shippingRefunded = $order->getShippingRefunded();
+        if($shippingRefunded > 0) {
+            $document = $document->addNewPosition(($row++) . "")
+                ->setDocumentPositionProductDetails("Shipping", "", "")
+                ->setDocumentPositionNetPrice($order->getBaseShippingRefunded())
+                ->setDocumentPositionQuantity(1, self::QTY_UNIT_CODE_PIECE)
+                ->addDocumentPositionTax('S', 'VAT',
+                    $this->getOrderTaxRate($order)) // "should" not according to validator, $order->getShippingTaxAmount())
+                ->setDocumentPositionLineSummation($shippingRefunded);
+        }
+
+
+//
+//        if (!empty($surchargeData["amt"])) {
+//            $document = $document->addNewPosition(($row++) . "")
+//                ->setDocumentPositionProductDetails($surchargeData["desc"], "", "")
+//                ->setDocumentPositionNetPrice($surchargeData["amt"])
+//                ->setDocumentPositionQuantity(1, self::QTY_UNIT_CODE_PIECE)
+//                ->addDocumentPositionTax('S', 'VAT', $this->getOrderTaxRate($order))
+//                ->setDocumentPositionLineSummation($surchargeData["amt"]);
+//        }
+
+        return $document;
+    }
+
     private function addTaxInfo(ZugferdDocumentBuilder $document,
         int $storeId,
         Mage_Sales_Model_Order $order): ZugferdDocumentBuilder
@@ -292,6 +414,31 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
 
         return $document;
     }
+    private function addTaxInfoRefunded(ZugferdDocumentBuilder $document,
+        int $storeId,
+        Mage_Sales_Model_Order $order,
+        Mage_Sales_Model_Order_Creditmemo $creditmemo): ZugferdDocumentBuilder
+    {
+        // Exemption codes:
+        //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:vatex_1
+
+        $gross = $creditmemo->getGrandTotal();
+        $taxRate = $this->getOrderTaxRate($order);
+        $net = $gross / (100 + $taxRate) * 100;
+        $tax = $gross - $net;
+        //$order->getSubtotalRefunded() + $order->getShippingRefunded();
+//        $surchargeData = $this->getSurcharge($order);
+//        if (!empty($surchargeData["amt"])) {
+//            $net += $surchargeData["amt"];
+//        }
+
+        $document = $document->addDocumentTax("S", "VAT", $net, $tax, $taxRate)
+            ->setDocumentSummation($gross, $order->getTotalDue(), $net, 0.0, 0.0, $net, $tax, null,
+                $gross);
+
+        return $document;
+    }
+
 
     private function getSurcharge(Mage_Sales_Model_Order $order): array
     {

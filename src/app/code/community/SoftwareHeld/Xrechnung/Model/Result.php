@@ -9,6 +9,8 @@ class SoftwareHeld_Xrechnung_Model_Result
     private string $message = "";
     /** @var Mage_Sales_Model_Order_Invoice[] */
     private array $invoices = [];
+    /** @var Mage_Sales_Model_Order_Creditmemo[] */
+    private array $creditMemos = [];
     private string $xmlInvoice = "";
 
     public function isSucess(): bool
@@ -56,6 +58,17 @@ class SoftwareHeld_Xrechnung_Model_Result
     public function addInvoice(Mage_Sales_Model_Order_Invoice $invoice): static
     {
         $this->invoices[] = $invoice;
+        return $this;
+    }
+
+    public function getCreditMemos(): array
+    {
+        return $this->creditMemos;
+    }
+
+    public function addCreditMemo(Mage_Sales_Model_Order_Creditmemo $creditMemo): static
+    {
+        $this->creditMemos[] = $creditMemo;
         return $this;
     }
 

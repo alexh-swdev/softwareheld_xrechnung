@@ -19,6 +19,9 @@ class SoftwareHeld_Xrechnung_Model_Observer
             $block->addItem('swh_xrechnung', [
                 'label' => Mage::helper('sales')->__('Create XRechnung'),
                 'url' => Mage::getModel('adminhtml/url')->getUrl('*/sales_order_xrechnung/create'),
+            ])->addItem('swh_xgutschrift', [
+                'label' => Mage::helper('sales')->__('Create XGutschrift'),
+                'url' => Mage::getModel('adminhtml/url')->getUrl('*/sales_order_xrechnung/createCredit'),
             ]);
         }
 
@@ -28,6 +31,20 @@ class SoftwareHeld_Xrechnung_Model_Observer
                 "label" => Mage::helper('sales')->__('Create XRechnung'),
                 "class" => "save",
                 "onclick" => Mage::helper("core/js")->getSetLocationJs($block->getUrl("*/sales_order_xrechnung/create"))
+            ])->addButton("swh_xgutschrift_order", [
+                "label" => Mage::helper('sales')->__('Create XGutschrift'),
+                "class" => "save",
+                "onclick" => Mage::helper("core/js")->getSetLocationJs($block->getUrl("*/sales_order_xrechnung/createCredit"))
+            ]);
+        }
+
+        // order detail
+        if (($block instanceof Mage_Adminhtml_Block_Sales_Order_Creditmemo_View)) {
+            $creditMemoId = $block->getRequest()->getParam("creditmemo_id");
+            $block->addButton("swh_xgutschrift_order", [
+                "label" => Mage::helper('sales')->__('Create XGutschrift'),
+                "class" => "save",
+                "onclick" => Mage::helper("core/js")->getSetLocationJs($block->getUrl("*/sales_order_xrechnung/createCredit", ["creditmemo_id" => $creditMemoId]))
             ]);
         }
     }
