@@ -344,7 +344,7 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
         $items = $order->getAllItems();
         foreach ($items as $item) {
             $qtyRefunded = $item->getQtyRefunded();
-            if($qtyRefunded == 0){
+            if ($qtyRefunded == 0) {
                 continue;
             }
 
@@ -357,8 +357,8 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
             $taxPercent = $item->getTaxPercent();
 
             $amountRefunded = $baseAdjustment > 0 ? $baseAdjustment : $item->getAmountRefunded();
-            $baseRefunded = $baseAdjustment > 0  ? $baseAdjustment / (100 + $taxPercent) * 100 : $item->getBaseAmountRefunded();
-            $details = $baseAdjustment > 0  ? ["Refund", ""] : [$item->getName(), $item->getSku()];
+            $baseRefunded = $baseAdjustment > 0 ? $baseAdjustment / (100 + $taxPercent) * 100 : $item->getBaseAmountRefunded();
+            $details = $baseAdjustment > 0 ? ["Refund", ""] : [$item->getName(), $item->getSku()];
             $document = $document->addNewPosition(($row++) . "")
                 ->setDocumentPositionProductDetails($details[0], "", $details[1])
                 ->setDocumentPositionNetPrice($baseRefunded)
@@ -369,7 +369,7 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
 
 
         $shippingRefunded = $order->getShippingRefunded();
-        if($shippingRefunded > 0) {
+        if ($shippingRefunded > 0) {
             $document = $document->addNewPosition(($row++) . "")
                 ->setDocumentPositionProductDetails("Shipping", "", "")
                 ->setDocumentPositionNetPrice($order->getBaseShippingRefunded())
@@ -389,6 +389,21 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
 //                ->addDocumentPositionTax('S', 'VAT', $this->getOrderTaxRate($order))
 //                ->setDocumentPositionLineSummation($surchargeData["amt"]);
 //        }
+
+        // Note: No items, just a refund, but one line item is required
+        if ($row === 1) {
+            $baseAdjustment = $creditmemo->getGrandTotal();
+            $taxPercent = $this->getOrderTaxRate($order);
+            $baseRefunded = $baseAdjustment / (100 + $taxPercent) * 100;
+            $qtyRefunded = 1;
+            $details = ["Refund", ""];
+            $document = $document->addNewPosition(($row++) . "")
+                ->setDocumentPositionProductDetails($details[0], "", $details[1])
+                ->setDocumentPositionNetPrice($baseRefunded)
+                ->setDocumentPositionQuantity($qtyRefunded, self::QTY_UNIT_CODE_PIECE)
+                ->addDocumentPositionTax('S', 'VAT', $taxPercent)
+                ->setDocumentPositionLineSummation($baseRefunded);
+        }
 
         return $document;
     }
@@ -414,6 +429,7 @@ class SoftwareHeld_Xrechnung_Model_Xrechnung
 
         return $document;
     }
+
     private function addTaxInfoRefunded(ZugferdDocumentBuilder $document,
         int $storeId,
         Mage_Sales_Model_Order $order,
