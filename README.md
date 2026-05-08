@@ -14,15 +14,19 @@ If you choose to use it, adjust your `composer.json`
 "repositories": [
 	{
 		"type": "vcs",
-		"url": "https://github.com/alexh-swdev/softwareheld_xrechnung.git"
+		"url": "https://work.software-held.com/OpenMage/SoftwareHeld_Xrechnung.git"
 	}
 ],
 (...)
 ```
-Then run `composer require alexh-swdev/softwareheld_xrechnung --update-no-dev --minimal-changes --optimize-autoloader -vvv` or similar.
+Then run `composer require alexh-swdev/softwareheld_xrechnung --minimal-changes --optimize-autoloader -vvv` or similar.
 
-To update, run `composer update alexh-swdev/softwareheld_xrechnung --update-no-dev --minimal-changes --optimize-autoloader -vvv` or similar.
+To update, run `composer update alexh-swdev/softwareheld_xrechnung --no-dev --minimal-changes --optimize-autoloader -vvv` or similar.
 
 ## Credits
 
 This module is based on horstoeko/zugferd: https://github.com/horstoeko/zugferd
+
+## Note
+
+Moved to https://work.software-held.com/OpenMage/SoftwareHeld_Xrechnung
